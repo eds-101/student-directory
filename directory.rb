@@ -16,13 +16,6 @@ students = [
 ]
 =end
 
-def interactive_menu
-  loop do
-    print_menu
-    process(gets.chomp)
-  end
-end
-
 def print_menu
   puts "1. Input the students"
   puts "2. Show the students"
@@ -31,26 +24,25 @@ def print_menu
   puts "9. Exit"
 end
 
-def save_students
-  # open file for viewing
-  file = File.open("students.csv", "w") # use "a" to append instead of (over)write
-  # iterate over the array of students
-  @students.each do |student|
-    student_data = [student[:name], student[:cohort]]
-    csv_line = student_data.join(",")
-    file.puts csv_line
+def interactive_menu
+  loop do
+    print_menu
+    process(STDIN.gets.chomp)
   end
-  file.close
 end
 
-def load_students
-  file = File.open("students.csv", "r")
-  file.readlines.each do |line|
-    name, cohort = line.chomp.split(",") # assign two vars in one go (Parallel assignment)
-    @students << {name: name, cohort: cohort.to_sym}
-    end
-    file.close
+
+def input_students
+  puts "Please enter the names of the students"
+  puts "To finish, just hit return twice"
+  name = gets.chomp
+  while !name.empty? do # while name is NOT empty
+    @students << {name: name, cohort: :November}
+    puts "Now we have #{@students.count} students"
+    name = STDIN.gets.chomp
+  end
 end
+
 
 def process(selection)
   case selection
@@ -76,18 +68,6 @@ def show_students
 end
 
 
-def input_students
-  puts "Please enter the names of the students"
-  puts "To finish, just hit return twice"
-  name = gets.chomp
-  while !name.empty? do # while name is NOT empty
-    @students << {name: name, cohort: :November}
-    puts "Now we have #{@students.count} students"
-    name = gets.chomp
-  end
-end
-
-
 def print_header
   puts "The students of Villains Academy"
   puts "-------------\n"
@@ -103,6 +83,41 @@ def print_footer
   puts "Overall, we have #{@students.count} great students.\n"
 end  
 
+def load_students(filename = "students.csv")
+  file = File.open("students.csv", "r")
+  file.readlines.each do |line|
+    name, cohort = line.chomp.split(",") # assign two vars in one go (Parallel assignment)
+    @students << {name: name, cohort: cohort.to_sym}
+    end
+    file.close
+end
+
+def save_students
+  # open file for viewing
+  file = File.open("students.csv", "w") # use "a" to append instead of (over)write
+  # iterate over the array of students
+  @students.each do |student|
+    student_data = [student[:name], student[:cohort]]
+    csv_line = student_data.join(",")
+    file.puts csv_line
+  end
+  file.close
+end
+
+def try_load_students
+  puts "hi"
+  filename = ARGV.first # first arg from command line
+  return if filename.nil? # get out the method if no file given
+  if File.exists?(filename) # if it exists
+    load_students(filename)
+    puts "Loaded #{@students.count} from #{filename}"
+  else
+    puts "Sorry, #{filename} doesn't exist."
+    exit # quit the program
+  end
+end
+
+try_load_students
 interactive_menu
 
 =begin
