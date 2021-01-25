@@ -28,18 +28,7 @@ def interactive_menu
   loop do
     print_menu
     process(STDIN.gets.chomp)
-  end
-end
-
-
-def input_students
-  puts "Please enter the names of the students"
-  puts "To finish, just hit return twice"
-  name = gets.chomp
-  while !name.empty? do # while name is NOT empty
-    @students << {name: name, cohort: :November}
-    puts "Now we have #{@students.count} students"
-    name = STDIN.gets.chomp
+    puts "Action completed successfully - choose the next task"
   end
 end
 
@@ -61,6 +50,7 @@ def process(selection)
   end
 end
 
+
 def show_students
   print_header
   print_students_list
@@ -81,31 +71,64 @@ end
 
 def print_footer
   puts "Overall, we have #{@students.count} great students.\n"
+end 
+
+def choose_filename
+  puts "Enter a filename w extension e.g. students.csv"
+  file_selected = STDIN.gets.chomp
+  file_selected = "students.csv" if file_selected.empty?
+  file_selected
+end
+
+
+def print_input_statements(location = "intro")
+  if location == "intro"
+    puts "Please enter the names of the students"
+    puts "To finish, just hit return twice"
+  else
+    puts "Now we have #{@students.count} students" 
+  end
 end  
 
-def load_students(filename = "students.csv")
-  file = File.open("students.csv", "r")
-  file.readlines.each do |line|
-    name, cohort = line.chomp.split(",") # assign two vars in one go (Parallel assignment)
-    @students << {name: name, cohort: cohort.to_sym}
-    end
-    file.close
+def input_students
+  print_input_statements("intro")
+  name = STDIN.gets.chomp
+  while !name.empty? do # while name is NOT empty
+    add_student("input_student", name, :November)
+    # @students << {name: name, cohort: :November}
+    print_input_statements("add_user")
+    name = STDIN.gets.chomp
+  end
 end
+
+def load_students(filename = "students.csv")
+  file_name = choose_filename
+  File.open(file_name, "r") { |file| 
+  file.readlines.each do |line|
+    name, cohort = line.chomp.split(",") # (Parallel assignment)
+    add_student("load_student", name, cohort)
+  end}
+
+end
+
+def add_student(use_case, name, cohort)
+  cohort = cohort.to_sym if use_case == "load_student"
+  @students << {name: name, cohort: cohort}
+end  
+
 
 def save_students
   # open file for viewing
-  file = File.open("students.csv", "w") # use "a" to append instead of (over)write
-  # iterate over the array of students
+  file_name = choose_filename
+  File.open(file_name, "w") { |file| # auto saves file after opening
   @students.each do |student|
     student_data = [student[:name], student[:cohort]]
     csv_line = student_data.join(",")
     file.puts csv_line
-  end
-  file.close
+  end}
 end
 
 def try_load_students
-  puts "hi"
   filename = ARGV.first # first arg from command line
   return if filename.nil? # get out the method if no file given
   if File.exists?(filename) # if it exists
